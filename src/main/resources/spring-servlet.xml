@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <context:component-scan base-package="org.littlesun" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+
+    <!--适配器 映射器 处理器-->  <!--启动日期转换器-->
+    <mvc:annotation-driven conversion-service="formattingConversionService"/>
+
+    <!--启用拦截器-->
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <!--拦截器以下的访问资源不用拦截-->
+            <mvc:exclude-mapping path="/login"/>
+            <mvc:exclude-mapping path="/doLogin"/>
+            <mvc:exclude-mapping path="/images/**"/>
+            <mvc:exclude-mapping path="/My97DatePicker/**"/>
+            <mvc:exclude-mapping path="/styles/**"/>
+            <mvc:exclude-mapping path="/jquery3.3.1.js"/>
+            <!--拦截器bean注册 （启用）-->
+            <bean class="org.littlesun.Interceptor.PermissInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+
+    <!--静态资源过滤器-->
+    <mvc:resources mapping="/**" location="/static/"/>
+
+    <!--日期转换器注册-->
+    <bean class="org.springframework.format.support.FormattingConversionServiceFactoryBean" id="formattingConversionService">
+        <property name="converters">
+            <set>
+                <bean class="org.littlesun.controller.DateConvert"/>
+            </set>
+        </property>
+    </bean>
+
+    <!--freemarker配置-->
+    <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+        <!--引入properties 配置文件-->
+        <property name="location" value="classpath:freemarker-var.properties"/>
+    </bean>
+
+    <!--定义free marker模板基本属性-->
+    <bean class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+        <property name="defaultEncoding" value="UTF-8"/>
+        <property name="templateLoaderPath" value="/WEB-INF/ftl/"/>
+        <property name="freemarkerVariables">
+            <map>
+                <entry key="root" value="${root}"/>
+            </map>
+        </property>
+        <property name="freemarkerSettings">
+            <props>
+                <!--模板更新的时间 单位(秒)-->
+                <prop key="template_update_delay">10</prop>
+                <!--本地化设置-->
+                <prop key="locale">zh_CN</prop>
+                <!--日期显示格式化-->
+                <prop key="datetime_format">yyyy-MM-dd HH:mm:ss</prop>
+                <!--日期格式化-->
+                <prop key="date_format">yyyy-MM-dd</prop>
+                <!--时间格式化-->
+                <prop key="time_format">HH:mm:ss</prop>
+                <!--数字格式化-->
+                <prop key="number_format">#.####</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!--定义视图解析器-->
+    <bean class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.freemarker.FreeMarkerView"/>
+        <!--响应数据类型 编码方式-->
+        <property name="contentType" value="text/html;charset=utf-8"/>
+        <!--允许请求覆盖-->
+        <property name="allowRequestOverride" value="true"/>
+        <!--允许会话覆盖-->
+        <property name="allowSessionOverride" value="true"/>
+        <!--公开请求属性-->
+        <property name="exposeRequestAttributes" value="true"/>
+        <!--公开会话属性-->
+        <property name="exposeSessionAttributes" value="true"/>
+        <!--后缀为 .ftl 的文件都是freemarker视图文件-->
+        <property name="suffix" value=".ftl"/>
+    </bean>
+</beans>

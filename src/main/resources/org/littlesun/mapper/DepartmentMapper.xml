@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.littlesun.mapper.DepartmentMapper" >
+
+  <resultMap id="BaseResultMap" type="org.littlesun.bean.Department" >
+    <id column="departmentid" property="departmentid" jdbcType="INTEGER" />
+    <result column="departmentname" property="departmentname" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <!--自定义resultMap-->
+  <resultMap id="BaseResultMap2" type="org.littlesun.bean.Department" extends="BaseResultMap">
+    <!--新增数据 employees ofType：新增数据的数据类型-->
+    <collection property="employees" ofType="org.littlesun.bean.Employee">
+      <id column="employeeid" property="employeeid" jdbcType="INTEGER" />
+      <result column="employeename" property="employeename" jdbcType="VARCHAR" />
+      <result column="username" property="username" jdbcType="VARCHAR" />
+      <result column="phone" property="phone" jdbcType="VARCHAR" />
+      <result column="email" property="email" jdbcType="VARCHAR" />
+      <result column="status" property="status" jdbcType="VARCHAR" />
+      <result column="departmentid" property="departmentid" jdbcType="INTEGER" />
+      <result column="password" property="password" jdbcType="VARCHAR" />
+      <result column="role" property="role" jdbcType="VARCHAR" />
+  </collection>
+  </resultMap>
+  
+  <!--预定会议 一对多查询-->
+  <select id="getAllDepsWithEmps" resultMap="BaseResultMap2">
+    SELECT d.`departmentname`,e.* FROM department d,employee e WHERE d.`departmentid`=e.`departmentid`
+  </select>
+
+  <!--删除操作-->
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from department
+    where departmentid = #{departmentid,jdbcType=INTEGER}
+  </delete>
+
+  <!--添加操作-->
+  <select id="getDepByName" resultMap="BaseResultMap">
+    select * from department where departmentname=#{depName};
+  </select>
+
+  <!--添加操作-->
+  <insert id="insertSelective" parameterType="org.littlesun.bean.Department" >
+    insert into department
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="departmentid != null" >
+        departmentid,
+      </if>
+      <if test="departmentname != null" >
+        departmentname,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="departmentid != null" >
+        #{departmentid,jdbcType=INTEGER},
+      </if>
+      <if test="departmentname != null" >
+        #{departmentname,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+
+  <!--查询所有部门-->
+  <select id="getAllDeps" resultMap="BaseResultMap">
+    select * from department
+  </select>
+
+  <sql id="Base_Column_List" >
+    departmentid, departmentname
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from department
+    where departmentid = #{departmentid,jdbcType=INTEGER}
+  </select>
+
+  <insert id="insert" parameterType="org.littlesun.bean.Department" >
+    insert into department (departmentid, departmentname)
+    values (#{departmentid,jdbcType=INTEGER}, #{departmentname,jdbcType=VARCHAR})
+  </insert>
+
+  <update id="updateByPrimaryKeySelective" parameterType="org.littlesun.bean.Department" >
+    update department
+    <set >
+      <if test="departmentname != null" >
+        departmentname = #{departmentname,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where departmentid = #{departmentid,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.littlesun.bean.Department" >
+    update department
+    set departmentname = #{departmentname,jdbcType=VARCHAR}
+    where departmentid = #{departmentid,jdbcType=INTEGER}
+  </update>
+</mapper>

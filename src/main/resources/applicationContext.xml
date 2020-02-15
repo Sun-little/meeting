@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+<context:component-scan base-package="org.littlesun" use-default-filters="true">
+    <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+</context:component-scan>
+    <!--数据源操作-->
+    <context:property-placeholder location="classpath:db.properties"/>
+    <bean class="com.alibaba.druid.pool.DruidDataSource" id="dataSource">
+        <property name="username" value="${db.username}"/>
+        <property name="password" value="${db.password}"/>
+        <property name="url" value="${db.url}"/>
+    </bean>
+
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactoryBean">
+        <property name="typeAliasesPackage" value="org.littlesun.bean"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath*:org/littlesun/mapper/*.xml</value>
+            </list>
+        </property>
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="org.littlesun.mapper"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryBean"/>
+    </bean>
+    <!--事务管理操作-->
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="add*"/>
+            <tx:method name="delete*"/>
+            <tx:method name="insert*"/>
+            <tx:method name="update*"/>
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        <!--自定义切点-->
+        <aop:pointcut id="pc1" expression="execution(* org.littlesun.service.*.*(..))"/>
+        <aop:advisor advice-ref="txAdvice"  pointcut-ref="pc1"/>
+    </aop:config>
+
+</beans>

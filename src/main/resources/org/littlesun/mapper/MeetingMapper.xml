@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.littlesun.mapper.MeetingMapper" >
+
+  <resultMap id="BaseResultMap" type="org.littlesun.bean.Meeting" >
+    <id column="meetingid" property="meetingid" jdbcType="INTEGER" />
+    <result column="meetingname" property="meetingname" jdbcType="VARCHAR" />
+    <result column="roomid" property="roomid" jdbcType="INTEGER" />
+    <result column="reservationistid" property="reservationistid" jdbcType="INTEGER" />
+    <result column="numberofparticipants" property="numberofparticipants" jdbcType="INTEGER" />
+    <result column="starttime" property="starttime" jdbcType="TIMESTAMP" />
+    <result column="endtime" property="endtime" jdbcType="TIMESTAMP" />
+    <result column="reservationtime" property="reservationtime" jdbcType="TIMESTAMP" />
+    <result column="canceledtime" property="canceledtime" jdbcType="TIMESTAMP" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <!--自定义resultMap-->
+  <resultMap id="BaseResultMap2" type="org.littlesun.bean.Meeting" extends="BaseResultMap">
+    <!--新增属性 手动映射新增属性-->
+    <association property="emp" javaType="org.littlesun.bean.Employee">
+      <result column="employeename" property="employeename"/>
+    </association>
+    <association property="mr" javaType="org.littlesun.bean.MeetingRoom">
+      <result column="roomname" property="roomname"/>
+    </association>
+  </resultMap>
+
+  <!--搜索会议分页sql-->
+  <select id="getMeetingByPage" resultMap="BaseResultMap2">
+    SELECT m.*,e.`employeename` AS employeename,mr.`roomname` AS roomname FROM meeting m,employee e,meetingroom mr
+    WHERE m.`roomid`=mr.`roomid` AND m.`reservationistid`=e.`employeeid` AND e.`employeename` LIKE
+    CONCAT('%',#{employeename},'%') AND mr.`roomname` LIKE CONCAT('%',#{roomname},'%') AND m.`meetingname` LIKE
+    CONCAT('%',#{meetingname},'%')
+    <if test="startReser!=null and startReser!=''">
+      AND UNIX_TIMESTAMP(m.`reservationtime`) > UNIX_TIMESTAMP(#{startReser})
+    </if>
+    <if test="endReser!=null and endReser!=''">
+      AND UNIX_TIMESTAMP(m.`reservationtime`) &lt; UNIX_TIMESTAMP(#{endReser})
+    </if>
+    <if test="meetingStart!=null and meetingStart!=''">
+      AND UNIX_TIMESTAMP(m.`starttime`)>UNIX_TIMESTAMP(#{meetingStart})
+    </if>
+    <if test="meetingEnd!=null and meetingEnd!=''">
+      AND UNIX_TIMESTAMP(m.`endtime`) &lt; UNIX_TIMESTAMP(#{meetingEnd})
+    </if>
+    limit #{start},#{count}
+  </select>
+
+  <!--搜索会议分页总页数sql-->
+  <select id="getTotal" resultType="java.lang.Integer">
+    SELECT count(*) FROM meeting m,employee e,meetingroom mr
+    WHERE m.`roomid`=mr.`roomid` AND m.`reservationistid`=e.`employeeid` AND e.`employeename` LIKE
+    CONCAT('%',#{employeename},'%') AND mr.`roomname` LIKE CONCAT('%',#{roomname},'%') AND m.`meetingname` LIKE
+    CONCAT('%',#{meetingname},'%')
+    <if test="startReser!=null and startReser!=''">
+      AND UNIX_TIMESTAMP(m.`reservationtime`) > UNIX_TIMESTAMP(#{startReser})
+    </if>
+    <if test="endReser!=null and endReser!=''">
+      AND UNIX_TIMESTAMP(m.`reservationtime`) &lt; UNIX_TIMESTAMP(#{endReser})
+    </if>
+    <if test="meetingStart!=null and meetingStart!=''">
+      AND UNIX_TIMESTAMP(m.`starttime`)>UNIX_TIMESTAMP(#{meetingStart})
+    </if>
+    <if test="meetingEnd!=null and meetingEnd!=''">
+      AND UNIX_TIMESTAMP(m.`endtime`) &lt; UNIX_TIMESTAMP(#{meetingEnd})
+    </if>
+  </select>
+
+  <sql id="Base_Column_List" >
+    meetingid, meetingname, roomid, reservationistid, numberofparticipants, starttime, 
+    endtime, reservationtime, canceledtime, description, status
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from meeting
+    where meetingid = #{meetingid,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from meeting
+    where meetingid = #{meetingid,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="org.littlesun.bean.Meeting" >
+    insert into meeting (meetingid, meetingname, roomid, 
+      reservationistid, numberofparticipants, 
+      starttime, endtime, reservationtime, 
+      canceledtime, description, status
+      )
+    values (#{meetingid,jdbcType=INTEGER}, #{meetingname,jdbcType=VARCHAR}, #{roomid,jdbcType=INTEGER}, 
+      #{reservationistid,jdbcType=INTEGER}, #{numberofparticipants,jdbcType=INTEGER}, 
+      #{starttime,jdbcType=TIMESTAMP}, #{endtime,jdbcType=TIMESTAMP}, #{reservationtime,jdbcType=TIMESTAMP}, 
+      #{canceledtime,jdbcType=TIMESTAMP}, #{description,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}
+      )
+  </insert>
+
+  <insert id="addParticipant">
+    insert into meetingparticipants (meetingid,employeeid) values
+    <foreach collection="ids" separator="," item="id">
+      (#{mid},#{id})
+    </foreach>
+  </insert>
+
+  <!-- useGeneratedKeys="true" keyProperty="meetingid" : 主键回填-->
+
+  <insert id="insertSelective" parameterType="org.littlesun.bean.Meeting" useGeneratedKeys="true" keyProperty="meetingid" >
+    insert into meeting
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="meetingid != null" >
+        meetingid,
+      </if>
+      <if test="meetingname != null" >
+        meetingname,
+      </if>
+      <if test="roomid != null" >
+        roomid,
+      </if>
+      <if test="reservationistid != null" >
+        reservationistid,
+      </if>
+      <if test="numberofparticipants != null" >
+        numberofparticipants,
+      </if>
+      <if test="starttime != null" >
+        starttime,
+      </if>
+      <if test="endtime != null" >
+        endtime,
+      </if>
+      <if test="reservationtime != null" >
+        reservationtime,
+      </if>
+      <if test="canceledtime != null" >
+        canceledtime,
+      </if>
+      <if test="description != null" >
+        description,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="meetingid != null" >
+        #{meetingid,jdbcType=INTEGER},
+      </if>
+      <if test="meetingname != null" >
+        #{meetingname,jdbcType=VARCHAR},
+      </if>
+      <if test="roomid != null" >
+        #{roomid,jdbcType=INTEGER},
+      </if>
+      <if test="reservationistid != null" >
+        #{reservationistid,jdbcType=INTEGER},
+      </if>
+      <if test="numberofparticipants != null" >
+        #{numberofparticipants,jdbcType=INTEGER},
+      </if>
+      <if test="starttime != null" >
+        #{starttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endtime != null" >
+        #{endtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="reservationtime != null" >
+        #{reservationtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="canceledtime != null" >
+        #{canceledtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="description != null" >
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.littlesun.bean.Meeting" >
+    update meeting
+    <set >
+      <if test="meetingname != null" >
+        meetingname = #{meetingname,jdbcType=VARCHAR},
+      </if>
+      <if test="roomid != null" >
+        roomid = #{roomid,jdbcType=INTEGER},
+      </if>
+      <if test="reservationistid != null" >
+        reservationistid = #{reservationistid,jdbcType=INTEGER},
+      </if>
+      <if test="numberofparticipants != null" >
+        numberofparticipants = #{numberofparticipants,jdbcType=INTEGER},
+      </if>
+      <if test="starttime != null" >
+        starttime = #{starttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endtime != null" >
+        endtime = #{endtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="reservationtime != null" >
+        reservationtime = #{reservationtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="canceledtime != null" >
+        canceledtime = #{canceledtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="description != null" >
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where meetingid = #{meetingid,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.littlesun.bean.Meeting" >
+    update meeting
+    set meetingname = #{meetingname,jdbcType=VARCHAR},
+      roomid = #{roomid,jdbcType=INTEGER},
+      reservationistid = #{reservationistid,jdbcType=INTEGER},
+      numberofparticipants = #{numberofparticipants,jdbcType=INTEGER},
+      starttime = #{starttime,jdbcType=TIMESTAMP},
+      endtime = #{endtime,jdbcType=TIMESTAMP},
+      reservationtime = #{reservationtime,jdbcType=TIMESTAMP},
+      canceledtime = #{canceledtime,jdbcType=TIMESTAMP},
+      description = #{description,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR}
+    where meetingid = #{meetingid,jdbcType=INTEGER}
+  </update>
+</mapper>

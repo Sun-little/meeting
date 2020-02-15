@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.littlesun.mapper.MeetingparticipantsMapper" >
+  <resultMap id="BaseResultMap" type="org.littlesun.bean.Meetingparticipants" >
+    <result column="meetingid" property="meetingid" jdbcType="INTEGER" />
+    <result column="employeeid" property="employeeid" jdbcType="INTEGER" />
+  </resultMap>
+  <insert id="insert" parameterType="org.littlesun.bean.Meetingparticipants" >
+    insert into meetingparticipants (meetingid, employeeid)
+    values (#{meetingid,jdbcType=INTEGER}, #{employeeid,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="org.littlesun.bean.Meetingparticipants" >
+    insert into meetingparticipants
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="meetingid != null" >
+        meetingid,
+      </if>
+      <if test="employeeid != null" >
+        employeeid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="meetingid != null" >
+        #{meetingid,jdbcType=INTEGER},
+      </if>
+      <if test="employeeid != null" >
+        #{employeeid,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+</mapper>

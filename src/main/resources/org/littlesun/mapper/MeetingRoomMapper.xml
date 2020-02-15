@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.littlesun.mapper.MeetingRoomMapper" >
+  <resultMap id="BaseResultMap" type="org.littlesun.bean.MeetingRoom" >
+    <id column="roomid" property="roomid" jdbcType="INTEGER" />
+    <result column="roomnum" property="roomnum" jdbcType="INTEGER" />
+    <result column="roomname" property="roomname" jdbcType="VARCHAR" />
+    <result column="capacity" property="capacity" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="VARCHAR" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <!--查询所有-->
+  <select id="getAllMeetingRooms" resultMap="BaseResultMap">
+    select * from meetingroom
+  </select>
+
+  <sql id="Base_Column_List" >
+    roomid, roomnum, roomname, capacity, status, description
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from meetingroom
+    where roomid = #{roomid,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from meetingroom
+    where roomid = #{roomid,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="org.littlesun.bean.MeetingRoom" >
+    insert into meetingroom (roomid, roomnum, roomname, 
+      capacity, status, description
+      )
+    values (#{roomid,jdbcType=INTEGER}, #{roomnum,jdbcType=INTEGER}, #{roomname,jdbcType=VARCHAR}, 
+      #{capacity,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="org.littlesun.bean.MeetingRoom" >
+    insert into meetingroom
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="roomid != null" >
+        roomid,
+      </if>
+      <if test="roomnum != null" >
+        roomnum,
+      </if>
+      <if test="roomname != null" >
+        roomname,
+      </if>
+      <if test="capacity != null" >
+        capacity,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="description != null" >
+        description,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="roomid != null" >
+        #{roomid,jdbcType=INTEGER},
+      </if>
+      <if test="roomnum != null" >
+        #{roomnum,jdbcType=INTEGER},
+      </if>
+      <if test="roomname != null" >
+        #{roomname,jdbcType=VARCHAR},
+      </if>
+      <if test="capacity != null" >
+        #{capacity,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null" >
+        #{description,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.littlesun.bean.MeetingRoom" >
+    update meetingroom
+    <set >
+      <if test="roomnum != null" >
+        roomnum = #{roomnum,jdbcType=INTEGER},
+      </if>
+      <if test="roomname != null" >
+        roomname = #{roomname,jdbcType=VARCHAR},
+      </if>
+      <if test="capacity != null" >
+        capacity = #{capacity,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null" >
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where roomid = #{roomid,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.littlesun.bean.MeetingRoom" >
+    update meetingroom
+    set roomnum = #{roomnum,jdbcType=INTEGER},
+      roomname = #{roomname,jdbcType=VARCHAR},
+      capacity = #{capacity,jdbcType=INTEGER},
+      status = #{status,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR}
+    where roomid = #{roomid,jdbcType=INTEGER}
+  </update>
+</mapper>
